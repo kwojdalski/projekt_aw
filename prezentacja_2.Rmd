@@ -1,0 +1,42 @@
+---
+title: "Analiza dyskryminacyjna"
+author: "Aleksandra Ciep³uch, Anna Rokicka, Krzysztof Wojdalski"
+date: "2017-01-24"
+css: www/custom_css.css'
+output:
+  slidy_presentation
+header-includes:
+  - \usepackage{amsmath}
+runtime: shiny
+---
+
+```{r setup, include=TRUE, cache=TRUE, echo=FALSE, message=F, warning=F}
+
+# :
+#     includes:
+#       after_body: include/before_body.html
+if(!'pacman'%in%installed.packages()) install.packages('pacman')
+require(pacman)
+p_load(knitr, plyr, magrittr, ggplot2, dplyr, xts, sorvi, foreign,
+       stargazer, tidyr, rmarkdown, markdown, shinydashboard, ggplot2,
+       shiny, DT, reshape2, ggthemes, CCA, GGally, lme4,influence.ME, purrr,
+       MASS, scales, gridExtra, xtable)
+
+
+
+       
+knitr::opts_chunk$set(
+  echo = FALSE,
+  message = FALSE,
+  warning = FALSE,
+  error = FALSE,
+  autodep = TRUE
+  )
+
+opts_knit$set(
+  root.dir = '..'
+)
+
+
+```
+

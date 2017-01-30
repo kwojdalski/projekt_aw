@@ -1,0 +1,305 @@
+---
+title: "Analiza dyskryminacyjna"
+author: "Aleksandra Ciepłuch, Anna Rokicka, Krzysztof Wojdalski"
+date: "2017-01-24"
+css: www/custom_css.css
+output:
+  slidy_presentation
+header-includes:
+  - \usepackage{amsmath}
+runtime: shiny
+---
+
+```{r setup, include=TRUE, cache=TRUE, echo=FALSE, message=F, warning=F}
+
+# :
+#     includes:
+#       after_body: include/before_body.html
+if(!'pacman'%in%installed.packages()) install.packages('pacman')
+require(pacman)
+p_load(knitr, plyr, magrittr, ggplot2, dplyr, xts, sorvi, foreign,
+       stargazer, tidyr, rmarkdown, markdown, shinydashboard, ggplot2,
+       shiny, DT, reshape2, ggthemes, CCA, GGally, lme4,influence.ME, purrr,
+       MASS, scales, gridExtra, xtable)
+
+
+
+       
+knitr::opts_chunk$set(
+  echo = FALSE,
+  message = FALSE,
+  warning = FALSE,
+  error = FALSE,
+  autodep = TRUE
+  )
+
+opts_knit$set(
+  root.dir = '..'
+)
+
+
+```
+
+
+## Cel pracy
+
+* Zbadanie związków pomiędzy osobami, które wykazały zaufanie do Parlamentu Europejskiego
+
+
+
+## Baza danych
+
+* Baza zawiera odpowiedzi 3045 respondentów z Niemiec, którzy odpowiadają na określone pytania z zakresu życia społecznego 
+* Dane zostały zebrane w 2014 roku
+* Pierwotna baza zawierała 601 zmiennych
+* Źródło danych: [European Social Survey](http://www.europeansocialsurvey.org/data/country_index.html)
+
+
+
+```{r dataset, include=T}
+
+data <- read.dta('./data/baza.dta')
+
+
+data %<>% rename(
+  psppipl=syst,
+  polintr=interested,
+  vote=glos,
+  lrscale=skala,
+  trstep=trust,
+  gndr=gender,
+  sgnptit=petition,
+  edulvlb=education
+) %>% dplyr::select(-dziel, -dziel2) #select in dplyr overmasked by MASS' function
+
+
+#colnames(data) %>% sort()
+ui <- dashboardPage(
+  dashboardHeader(),
+  dashboardSidebar(
+    selectInput('vars', 'Zmienne', choices = colnames(data), multiple = T)
+  ),
+  dashboardBody(dataTableOutput('tbl_dataset'))
+)
+  
+  
+server <- shinyServer(function(input,output){
+  output$tbl_dataset <- DT::renderDataTable({
+    if(length(input$vars)>0){cols <- input$vars}else{cols <- colnames(data)}
+    
+    data[,cols]
+  })
+})
+
+shinyApp(server=server,ui=ui)
+
+
+
+```
+
+
+## Zmienne
+
+* $happy$ – Jak bardzo jesteś szczęśliwy?
+* $polintr$ - Jak bardzo zainteresowany jesteś wydarzeniami politycznymi?
+* $psppipl$ - Czy zgadzasz się ze stwierdzeniem, że system polityczny pozwala ludziom wpływać na politykę?
+* $health$ – Subiektywna ocena poziomu zdrowia (od 0 do 10, gdzie 0 - bardzo zły, 10 - bardzo dobry)
+* $gndr$ - Płeć
+* $ulvlb$ – Osiągnięty poziom edukacji
+* $vote$ – Czy głosowałeś w ostatnich wyborach do Bundestagu?
+* $sgnptit$ - Czy podpisałeś petycję w ciągu ostatnich 12 miesięcy?
+* $lrscale$ - Określ swoje poglądy (0 - lewica, 10 - prawica)
+
+## Zmienne cd
+
+
+```{r decoding, include=T}
+dataset <- data %>% dplyr::select(trstep, happy, polintr, psppipl, 
+                                  health, gndr, vote, sgnptit, lrscale) #? ulvlb
+dataset$gndr%<>%{ifelse(.=='Male',1,0)}
+dataset$sgnptit%<>%{ifelse(.=='Yes',1,0)}
+
+
+to_plot <- dataset %>% data.frame(id=row.names(.),.) %>% melt(id.vars='id') #data wrangling
+to_plot$variable%<>%as.character()
+cols_to_plot <- unique(to_plot$variable) %>% as.character()#colnames(to_plot)
+ui <- fluidPage(
+  selectInput('vars', 'Zmienne', choices = cols_to_plot, selected= cols_to_plot, multiple = T),
+  plotOutput('plot_vars')
+)
+server <- shinyServer(function(input, output){
+  output$plot_vars <- renderPlot({
+    to_plot %>% 
+      filter(variable %in% input$vars) %>% 
+      ggplot(aes(x = value, fill = variable)) +
+      geom_bar() +
+      facet_wrap( ~ variable, scales = 'free') +
+      theme_tufte() +
+      guides(fill = FALSE)
+  })
+})
+  
+shinyApp(server=server,ui=ui)
+
+#save.image('./data/all_data.RData')
+```
+
+```{r wrangling,include=F}
+
+  
+fctr_variables <- c('health','vote')
+dataset[,fctr_variables]%<>%as.data.frame()  %>% mutate_each(funs(.=as.factor(.)))
+
+
+names_new <- c()
+
+
+a_ply(fctr_variables,1,.fun=function(y){
+  
+  levels_ <- levels(dataset[,y] %>% simplify() %>% droplevels()) 
+  print(levels_)
+  a_ply(2:length(levels_),1,.fun=function(x){
+    
+    dataset[paste0(y,x)]<<-(dataset[,y]==levels_[x]) %>% as.numeric()
+    names_new <<- {c(names_new,paste0(y,x))}
+  })
+})
+
+names_new <- c(names_new) %>% .[!.%in%fctr_variables]
+dataset%<>%.[,!colnames(.)%in%fctr_variables] 
+
+
+
+```
+
+
+
+```{r decoding_cdn, include=F}
+#load('./data/all_data.RData')
+
+#dataset %>% str()
+# Here I decoded the dataset so that categorical values are replaced with arbitrarily chosen numbers 
+
+
+
+dataset$happy %>% unique()
+dataset$psppipl %>% unique() %>% droplevels()
+dataset$lrscale %>% unique() %>% droplevels()
+dataset %<>% mutate(
+  happy=mapvalues(happy,
+                  c('Extremely happy','Refusal',"Don't know",'Extremely unhappy'),
+                  c(10,5,5,1)) %>% as.numeric(),
+  psppipl=mapvalues(psppipl,
+                  c('Not at all',"Completely","Don't know",'Refusal'),
+                  c(1,10,5,5)) %>% as.numeric(),
+  lrscale=mapvalues(lrscale,
+                  c('Left',"Right","Don't know",'Refusal'),
+                  c(3,8,5,5)) %>% as.numeric(),
+  trstep=mapvalues(trstep,
+                   c('Complete trust','No trust at all','Refusal',"Don't know","No answer"),
+                   c(10,1,5,5,5)) %>% as.numeric()
+  
+) 
+dataset$trstep%<>%cut(c(0,3,6,10),c('Lack_of_Confidence','Neutral','Confidence'))
+
+
+# 
+# 
+# corDF = cor(dataset);
+# 
+# p_load(Hmisc)
+# require(Hmisc)
+#   str(dataset)
+# 
+#   z <- apply(dataset,2,
+#   FUN=function(x){print(class(unclass(x)));
+#     browser();
+#     
+#     if(is.factor(x)){x <- as.character(x)}else{x}})
+#     
+```
+
+
+
+
+```{r model_pda, include = F}
+
+formula <- as.formula(paste0(colnames(dataset),collapse='+') %>% {sub('\\+','~',.,perl=T)})
+
+
+fit <- lda(formula, data=dataset)#, 
+   #na.action="na.omit", CV=TRUE)
+
+prediction <- predict(fit, dataset %>% dplyr::select(-trstep))$class
+pred_vs_orig <- table(prediction,dataset[,'trstep'])
+# Percent of correctly predicted values
+
+fit # show results
+
+
+
+fit$svd # singular value - ratio of between- and within-group std on the linear discriminant variables
+prop  <-  fit$svd^2/sum(fit$svd^2)
+prop # the first linear discriminant explain nearly 96% of the between group variance in the dataset
+
+```
+
+
+
+1.	Wstępna analiza danych, w szczególności sprawdzenie normalności rozkładu zmiennych.
+2.	Obliczenie statystyki Wilksa badającej równość średnich grupowych i sprowadzenie jej do statystyki F
+3.	Wstępna weryfikacja hipotez w oparciu o otrzymane wyniki.
+4.	Wyznaczenie współczynników dyskryminujących i macierzy struktury.
+5.	Podstawienie otrzymanych współczynników dyskryminujących do równania  funkcji dyskryminacyjnej:
+
+
+
+## LDA model 
+
+```{r lda_table, include=T,results='asis'}
+
+# tbl to display 
+tbl_count_pct <- rbind(percent(fit$prior),sprintf('%.0f',fit$counts))
+colnames(tbl_count_pct) <- c("Lack_of_Confidence","Neutral","Confidence")
+rownames(tbl_count_pct) <- c('% obserwacji w grupie','Ilość obserwacji w grupie')
+
+print(xtable(tbl_count_pct),type='html')
+print(xtable(fit$means,'Średnie grupowe'),type='html') #srednie
+print(xtable(fit$scaling,caption='Współczynniki dyskryminanty'),type='html')
+
+#print(xtable(fit$counts),type='html')
+print(xtable(pred_vs_orig),type="html")
+
+```
+
+
+## LDA model - c.d.
+
+```{r lda_plots, include=T, results='asis'}
+caption_ <- paste0('Correctly identified observations: ',percent(sum(diag(pred_vs_orig))/sum(pred_vs_orig)))
+
+plda <- predict(object = fit,
+                newdata = dataset)
+
+df_lda_plot = data.frame(trstep= dataset[,'trstep'],lda = plda$x)
+
+
+ggplot(df_lda_plot) + 
+  geom_point(aes(lda.LD1, lda.LD2, colour = trstep, shape = trstep), size = 2.5) + 
+  labs(x = paste("LD1 (", percent(prop[1]), ")", sep=""),
+       y = paste("LD2 (", percent(prop[2]), ")", sep=""),
+       caption = caption_)+
+  theme_tufte()
+
+```
+
+
+## Bibliografia
+
+* Gatnar E., Nieparametryczna metoda dyskryminacji i regresji, PWN, Warszawa 2001
+* Morrison D.F., Wielowymiarowa analiza statystyczna, PWN, Warszawa 1990
+* Klecka, W. R. (1981). Discriminant analysis. Beverly Hills: Sage Publications.
+* Lachenbruch, P. A. (1975). Discriminant analysis. New York: Hafner Press.
+* 8 E. Uslaner, Trust and Corruption, w: Corruption and the New Institutional Economics, red. M.Taube, J. Lambsdorf, M. Schramm, Routledge, London 2004.
+* Arnold Christine, Sapir V. Eliyahu, Zapryanova Galina, ,, Trust in the institutions of the European Union: A cross-country examination”, 2012, dostępny w internecie : http://eiop.or.at/eiop/pdf/2012-
+008.pdf

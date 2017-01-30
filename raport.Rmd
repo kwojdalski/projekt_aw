@@ -1,0 +1,165 @@
+---
+title: "Ocena zaufania w stosunku do Parlamentu Europejskiego w Niemczech w 2014 roku. Analiza skupień"
+author: "Aleksandra Ciepłuch, Anna Rokicka, Krzysztof Wojdalski"
+date: "2017-01-24"
+css: www/custom_css.css
+output: pdf_document
+---
+
+
+```{r setup, include=TRUE, cache=TRUE, echo=FALSE, message=F, warning=F}
+if(!'pacman'%in%installed.packages()) install.packages('pacman')
+require(pacman)
+p_load(knitr, plyr, magrittr, ggplot2, dplyr, xts, sorvi, foreign,
+       stargazer, tidyr, rmarkdown, markdown, ggplot2,
+       shiny, reshape2, ggthemes, CCA, GGally, lme4,influence.ME, purrr,
+       MASS, scales, gridExtra, xtable)
+
+
+knitr::opts_chunk$set(
+  echo = FALSE,
+  message = FALSE,
+  warning = FALSE,
+  error = FALSE,
+  autodep = TRUE,
+  cache=T)
+
+# opts_knit$set(
+#   root.dir = '..'
+# )
+
+
+```
+
+```{r intro, include=T, child="./src/subparts/01_intro.R"}
+
+```
+
+
+## Interpretacja wyników badania
+
+### Wstępna analiza danych
+W początkowej fazie badania za pomocą formuł des, oraz sum dokonaliśmy podstawowej analizy zmiennych, poprzez przedstawienie ich podstawowych charakterystyk, takich jak średnia, odchylenie standardowe, obserwacje minimalne i maksymalne (Tabela 1), analizę histogramu dla zmiennej wiek (Wykres 1), oraz macierzy korelacji, obliczonej za pomocą współczynnika Spearmana( Tabela 2).
+
+```{r summary, include=T}
+
+dataset[,fctr_variables]%<>%as.data.frame()  %>% mutate_each(funs(.=as.factor(.)))
+
+
+names_new <- c()
+
+
+a_ply(fctr_variables,1,.fun=function(y){
+  
+  levels_ <- levels(dataset[,y] %>% simplify() %>% droplevels()) 
+  print(levels_)
+  a_ply(2:length(levels_),1,.fun=function(x){
+    
+    dataset[paste0(y,x)]<<-(dataset[,y]==levels_[x]) %>% as.numeric()
+    names_new <<- {c(names_new,paste0(y,x))}
+  })
+})
+
+names_new <- c(names_new) %>% .[!.%in%fctr_variables]
+dataset%<>%.[,!colnames(.)%in%fctr_variables] 
+
+
+
+```
+
+```{r histogram, include=T, cache=T}
+
+
+
+to_plot <- data %>% data.frame(id=row.names(.),.) %>% melt(id.vars='id') #data wrangling
+to_plot$variable%<>%as.character()
+to_plot %>% 
+      ggplot(aes(x = value, fill = variable)) +
+      geom_bar() +
+      facet_wrap( ~ variable, scales = 'free') +
+      theme_tufte() +
+      guides(fill = FALSE)
+
+
+
+
+```
+
+Standaryzacja zmiennych
+Ponieważ zmienne są przedstawione w różnych skalach musimy dokonać ich standaryzacji, dzięki czemu w bazie tworzone są nowe zestandaryzowane zmienne odpowiednio
+wiek_K,
+interested_K,
+trust_K,
+education_K.
+Zdecydowaliśmy się aby w naszym badaniu skorzystać z niehierarchicznej metody k-średnich. Liczbę skupień wyznaczyliśmy za pomocą statystyki Celińskiego i Harabasza., która posiada tym większe wartości im większe zróżnicowanie pomiędzy skupieniami.
+Wyznaczenie liczby skupień
+Dla naszych zmiennych jej wartości przedstawiają się następująco:
+  
+  Liczba skupień	Wartość Statystyki Celińskiego- Harabasza
+1	-
+  2	828,61
+3	882,81
+4	820,19
+5	742,82
+6	733,65
+7	719,91
+8	670,63
+9	665,76
+10	654,32
+11	629,85
+12	617,9
+13	605,04
+14	577,04
+15	543,04
+16	548,99
+
+Ponieważ szukana statystyka osiąga największą wartość dla 3 skupień, oznacza to, że po podzieleniu zbioru danych na dwie grupy osiągniemy największe zróżnicowanie pomiędzy skupieniami.
+Następnie w celu scharakteryzowania powstałych skupień, przedstawiliśmy charakteryzujące je statystyki opisowe dla poszczególnych zmiennych w postaci tabelarycznej:
+  Charakterystyki poszczególnych skupień
+
+
+W pierwszej grupie znaleźli się respondenci charakteryzujący się stosunkowo wysokim zaufaniem do Parlamentu Europejskiego, oraz wysokim zainteresowaniem do polityki. 
+Z drugiej strony są to respondenci młodzi o niższym poziomie edukacji, niż w pozostałych grupach.
+
+
+W drugim skupieniu znajdują się respondenci o niskim zaufaniu do Parlamentu Europejskiego oraz nieco niższym zainteresowaniu polityką. Są to także respondenci lepiej wykształceni oraz starsi, o średniej wieku powyżej 60 lat.
+
+
+Respondenci z ostatniej grupy charakteryzują się przeciętnym zaufaniem do Parlamentu 
+i zdecydowanie najniższym spośród wszystkich grup poziomie zainteresowania polityką. Są to też osoby najlepiej wykształcone i w średnim wieku.
+W celu potwierdzenia czy nasze wyniki nie powstały w sposób przypadkowy przeprowadziliśmy dodatkowy test, grupujący zbiór danych za pomocą mediany, która jest bardziej odporna na obserwacje odstające. Wyniki testu przedstawiliśmy w Tabelach 7-9.
+
+
+
+
+
+
+
+
+
+
+
+
+Potwierdziło to nasze wnioski, że najbardziej Parlamentowi Europejskiemu ufają osoby najmłodsze o stosunkowo niskim poziomie edukacji i wysokim zainteresowaniu polityką. Z drugiej strony najniższe zaufanie wykazują osoby najstarsze o przeciętnym zaufaniu polityką i średnim poziomie edukacji. Osoby w wieku średnim o zdecydowanie najwyższym poziomie edukacji ufają Parlamentowi w stopniu niewiele niższym jak osoby młode, jednak wykazują zdecydowanie mniejsze zainteresowanie polityką.
+Weryfikacja hipotez 
+Na podstawie przeprowadzonego zweryfikowano postawione wcześniej hipotezy:
+  Osoby starsze ufają Parlamentowi mniej. 
+Osoby z wyższym wykształceniem ufają Parlamentowi bardziej. 
+Osoby zainteresowane polityką ufają Parlamentowi najbardziej. 
+W przypadku wszystkich hipotez możemy stwierdzić, że nie ma podstaw do ich odrzucenia. 
+Wnioski
+W trakcie badania natrafiliśmy na wiele problemów związanych z danymi. Baza charakteryzuje się dużą rozbieżnością danych, do utrudniło nieco nasze badanie. Niepokojące są niskie korelacje pomiędzy zmiennymi. Intuicja podpowiada, że zmienne wiek i edukacja powinny być mocno skorelowane, jednak w naszych danych ta korelacja jest dosyć niska, nawet wprowadzenie tylko 3 poziomów w przypadku badanych zmiennych nie dało pożądanych skutków i korelacje nie uległy poprawie. 
+Analiza segmentacji wyróżniła 3 niewykluczające się grupy, które 
+
+Bibliografia
+//musimy tu coś dodać pod nasze nowe badanie i uporządkować 
+
+E. Uslaner, Trust and Corruption, w: Corruption and the New Institutional Economics, red. M. Taube, J. Lambsdorf, M. Schramm, Routledge, London 2004. 
+
+Arnold Christine, Sapir V. Eliyahu, Zapryanova Galina, ,, Trust in the institutions of the European Union: A cross-country examination”, 2012, dostępny w internecie : http://eiop.or.at/eiop/pdf/2012-008.pdf
+Załączniki
+
+
+
+
+

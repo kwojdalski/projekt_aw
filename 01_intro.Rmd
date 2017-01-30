@@ -1,0 +1,55 @@
+
+
+## Wstęp
+Zaufanie do instytucji publicznych jest jednym z filarów pozwalających funkcjonować instytucjom demokratycznym. 
+Duży jego poziom daje silny mandat na przeprowadzanie reform i efektywną pracę struktur rządowych. Kryzys finansowy, i w konsekwencji konieczne wsparcie finansowe dla najbardziej zadłużonych krajów, a także rosnący problem z napływem imigrantów i terroryzmem - każdy z tych czynników powoduje, że Unia Europejska zmaga się z ogromnym kryzysem zaufania. Odsetek deklarujących wiarę w instytucję Unii Europejskiej spadł z 57% w 2007 roku do 31 % w roku 2012 i od tego utrzymuje się obecnie na niemal niezmienionym poziomie.
+Celem naszego projektu jest pogrupowanie respondentów na grupy w zależności od poziomu zaufania do Parlamentu Europejskiego, stopnia zainteresowania polityką, wykształcenia i wieku. W tym celu wykorzystamy analizę skupień.
+
+## Analiza skupień - teoria
+
+Analiza skupień ma na celu podział danych na grupy (klastry/skupienia), zawierające elementy o podobnych cechach. Wykorzystywany algorytm działa w taki sposób, aby jednostki w obrębie danej grupy były jak najbardziej do siebie podobne, ale poszczególne wyodrębnione grupy cechowały się jak najmniejszym podobieństwem.
+W ramach analizy skupień wyróżnia się dwa główne typy:
+
+* Metoda hierarchiczna - polega na stworzeniu kolejnych podziałów zbioru, zaczynając od takiego, w którym każdy element tworzy samodzielne skupienie, poprzez połączenie obiektów leżących najbliżej siebie, aż do uzyskania jednego skupienia. Problem stanowi wybór metryki, mierzącej odległości między poszczególnymi skupieniami. Do najczęściej używanych należą:
++ Metoda najbliższego sąsiedztwa, w której to odległość między dwoma skupieniami określona jest przez odległość między najbliższymi obiektami (sąsiadami) należącymi do różnych skupień;
+Metoda najdalszego sąsiedztwa, tutaj odległość, w przeciwieństwie do metody najbliższych sąsiadów równa jest odległości między najdalej położonymi obiektami należącymi do różnych skupień;
++ Metoda średnich połączeń, gdzie odległość między skupieniami równa się średniej arytmetycznej wyznaczonej ze wszystkich odległości obiektów należących do dwóch różnych skupień;
++ Metoda środków ciężkości - odległość wyznaczona jest poprzez odległość między środkami ciężkości skupień 
++ Metoda ważonych środków ciężkości (mediany), metoda podobna do ważonych środków ciężkości z tą różnicą, że w tym przypadku wprowadzamy wagi, odpowiadające wielkością skupień. 
+* Metoda niehierarchiczna - w tym przypadku, w przeciwności do metody hierarchicznej żadna z grup na które został podzielony zbiór danych, nie jest podgrupą innej grupy z tego zbioru. 
+
+Najbardziej popularną odmianą niehierarchicznej analizy skupień jest metoda  k-średnich, w której zbiór jest dzielony na z góry ustaloną liczbę skupień. Poszczególne elementy są przyporządkowywane za pomocą algorytmu, który ma na celu pogrupowanie elementów o jak największym podobieństwie do jednej grupy, przy jednoczesnej maksymalizacji różnic pomiędzy odrębnymi skupieniami. Głównym założeniem analizy skupień jest losowy wybór próby oraz jak najmniejsza korelacja pomiędzy zmiennymi niezależnymi.
+
+## Baza danych
+W naszej analizie korzystaliśmy z bazy danych Europejskiego Badania Społecznego, przeprowadzonego w 2014 roku. Zbiór zawierał odpowiedzi 3045 respondentów z Niemiec na pytania dotyczące życia społecznego. Wywiady zostały przeprowadzone w przeważającej liczbie przypadków metodą kontaktu bezpośredniego. W dalszej analizie wyselekcjonowaliśmy te zmienne, które uznaliśmy za najbardziej adekwatne w kontekście naszego badania. Ponadto z badania wykluczyliśmy obserwacje zawierające niepełne odpowiedzi. Ostatecznie zbiór składał się z 2804 obserwacji i to właśnie one stanowiły podstawę naszego badania
+Wybrane zmienne na podstawie literatury przedmiotu i wstępnej inspekcji danych są następujące:
+* interested (polintr)- zmienna opisująca poziom zainteresowania polityką, 
+* trust (trstprl) - zmienna opisująca zaufania respondentów do Parlamentu Europejskiego przyjmuje wartości od 0 do 10)
+* education (edulvlb) - zmienna opisująca poziom edukacji respondenta zgodnie z międzynarodową standardową klasyfikacją edukacji,
+* wiek (agea) -zmienna opisująca wiek respondenta.
+Dla ułatwienia badania pierwotne nazwy (w nawiasach) zostały zmienione na bardziej intuicyjne.
+
+
+```{r dataset, include=T, cache=T}
+data <- read.dta('./data/segmentacja.dta')
+
+if(TRUE%in%!c('education','interested','wiek','trust')%in%colnames(data)){
+  data %<>% rename(
+    education=edulvlb,
+    wiek=agea,
+    trust=trstprl,
+    interested=polintr) 
+}
+data%<>% dplyr::select(education, wiek, trust, interested)
+
+```
+
+
+## Wybór metody badawczej
+Do naszego badania wybraliśmy metodę niehierarchiczna. Decyzja była uwarunkowana specyfiką problemu. Po pierwsze nie znaleźliśmy podstaw do hierarchizacji naszych grup. Po drugie - baza charakteryzuje się dużą liczbą obserwacji, co utrudniłoby analizę wszystkich zmiennych w przypadku metody hierarchicznej. Jednym z jej wymogów jest policzenie macierzy zmiennych o wymiarze $n \times n$, gdzie $n$ jest liczbą obserwacji. Złożoność obliczeniowa algorytmu jest bardzo duża w przypadku tak dużej liczby zmiennych.
+
+## Hipotezy badawcze
+W celu odpowiedzi na nasze pytanie badawcze postawiliśmy kilka hipotez, które brzmią następująco:
+* Osoby starsze ufają Parlamentowi mniej - takie stwierdzenie jest motywowane faktem, że ludzie starsi są gorzej wyedukowani i nie w pełni rozumieją benefity wynikające z partycypacji we wspólnym rynku i integracji europejskiej
+* Osoby z wyższym wykształceniem ufają Parlamentowi bardziej - takie stwierdzenie jest
+* Osoby zainteresowane polityką ufają Parlamentowi najbardziej - zakładamy, że Unia Europejska jest tworem, który w sumie pomaga obywatelom krajów członkowskich w osiągnięciu dobrobytu. W związku z tym ci, którzy zdają sobie sprawę z dobrych stron demokratycznego reżimu i konkurencji na rynku będą ufać bardziej instytucji Parlamentu Europejskiego

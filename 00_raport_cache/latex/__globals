@@ -1,0 +1,3 @@
+dataset	::	!	%<>%	agea	c	colnames	education	edulvlb	if	interested	polintr	read.dta	rename	trstprl	trust	wiek
+summary	!	.	[<-	%<>%	%>%	<<-	==	a_ply	as.data.frame	as.factor	as.numeric	c	colnames	dataset	droplevels	fctr_variables	funs	length	levels	mutate_each	paste0	print	simplify
+histogram	.	%<>%	%>%	~	$	aes	as.character	data	data.frame	facet_wrap	geom_bar	ggplot	guides	melt	row.names	theme_tufte	value	variable

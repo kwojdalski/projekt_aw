@@ -1,0 +1,168 @@
+body {
+    font-family: Verdana;
+    width: 100vw;
+    height: 100vh;
+}
+
+table
+{
+	font-family: "Lucida Sans Unicode", "Lucida Grande", Sans-Serif;
+	font-size: 12px;
+	margin: 45px;
+	width: 480px;
+	text-align: left;
+	border-collapse: collapse;
+}
+th
+{
+	font-size: 14px;
+	font-weight: normal;
+	padding: 12px 15px;
+	border-right: 1px solid #fff;
+	border-left: 1px solid #fff;
+	color: #039;
+}
+td
+{
+	padding: 8px 15px;
+	border-right: 1px solid #fff;
+	border-left: 1px solid #fff;
+	color: #669;
+}
+
+div.set1 form.well {
+    background: transparent;
+    border: 0px;
+}
+#rectangle {
+    width: 100vw;
+    height: 10vh;
+    background-color: rgb(172, 49, 67);
+}
+section.slide {
+    position: absolute;
+    height: 85vh;
+    /* just for the looks */
+    
+    width: 45vw;
+    padding: 0em;
+    border: none;
+}
+section.pic {
+    position: absolute;
+    right: 1vw;
+    background-color: transparent;
+    top: 15vh;
+    /* just for the looks */
+    
+    width: 55vw;
+    border: none;
+    background-color: transparent;
+    height: 75vh;
+}
+section.main-container {
+    width 100vw;
+}
+svg {
+    top: 90vh;
+    left: 0vw;
+}
+#strip {
+    position: absolute;
+    top: 90vh;
+    left: 0vw;
+}
+ul {
+    list-style: none;
+    padding: 0;
+    font-size: auto;
+    width: 30vw;
+    top: 10vh;
+    height: 70vh;
+    
+}
+ol {
+    list-style: none;
+    padding: 0;
+    font-size: auto;
+    width: 30vw;
+    top: 10vh;
+    height: 70vh;
+}
+li {
+    font-family: Verdana;
+    padding-left: 1em;
+    text-indent: -1em;
+}
+title {
+    font-family: Verdana;
+    size: 3.148vh;
+    font-weight: bold;
+    color: rgb(172, 49, 67);
+    line-height: calc(26.40px/1080px)*100vh;
+}
+h1 {
+    font-family: Verdana;
+    font-size: 3.148vh;
+    font-weight: bold;
+    
+    color: rgb(172, 49, 67);
+    line-height: calc(26.40px/1080px)*100vh;
+}
+h2 {
+    font-family: Verdana;
+    font-size: 3.148vh;
+    font-weight: bold;
+    color: rgb(172, 49, 67);
+    line-height: calc(26.40px/1080px)*100vh;
+}
+h3 {
+    font-family: Verdana;
+    font-size: 1.296vh;
+    font-style: normal;
+    font-variant: normal;
+    font-weight: bold;
+    color: #2b4f68;
+    line-height: calc(15.40px/1080px)*100vh;
+}
+p {
+    font-family: Verdana;
+    font-size: 2.222vh;
+    font-style: normal;
+    font-variant: normal;
+    font-color #525455;
+}
+iframe {
+    position: absolute;
+    top: 10vh;
+    width: 60vw;
+    left: 35vw;
+    height: 70vh;
+}
+blockquote {
+    font-family: Verdana;
+    font-size: 1.296vh;
+    font-style: normal;
+    font-variant: normal;
+    font-weight: 400;
+    line-height: 30px;
+}
+pre {
+    font-family: Verdana;
+    font-size: 1.296vh;
+    font-style: normal;
+    font-color: rgb(43, 79, 104);
+    font-variant: normal;
+    font-weight: 400;
+    line-height: calc(18.57px/1080px)*100vh;
+}
+#img_footer {
+    position: absolute;
+    left: 0px;
+    top: 85vh;
+    bottom: 0px;
+    height: 10vh; 
+    width: 20vh; 
+    max-width: 20vw; 
+    max-height: 10vh;
+}

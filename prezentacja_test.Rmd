@@ -1,0 +1,64 @@
+---
+title: "Analiza dyskryminacyjna"
+author: "Aleksandra Ciepłuch, Anna Rokicka, Krzysztof Wojdalski"
+date: "2017-01-24"
+#css: custom_css.css
+output:
+  slidy_presentation:
+    css: www/custom_css.css
+header-includes:
+  - \usepackage{amsmath}
+runtime: shiny
+---
+
+```{r setup, include=TRUE, cache=TRUE, echo=FALSE, message=F, warning=F}
+#directory<<-getwd()
+#directory%<>%{gsub('\\/[a-zA-Z]*$','',.)}
+
+# includes:
+#       after_body: include/before_body.html
+#opts_knit$set(root.dir = directory)
+getwd()
+
+if(!'pacman'%in%installed.packages()) install.packages('pacman')
+require(pacman)
+p_load(knitr, plyr, magrittr, ggplot2, dplyr, xts, sorvi, foreign,
+       stargazer, tidyr, rmarkdown, markdown, shinydashboard, ggplot2,
+       shiny, DT, reshape2, ggthemes, CCA, GGally, lme4,influence.ME, purrr,
+       MASS, scales, gridExtra, xtable)
+
+myOptions <- list(width=1600, height=800)
+
+options(
+  digits.secs=3,
+  digits=10,
+  scipen=999
+)
+
+opts_chunk$set(
+  cache.path = 'cache/',
+  cache.comments = FALSE,
+  error = FALSE,
+  cache = TRUE,
+  message = FALSE,
+  autodep = TRUE,
+  echo = FALSE,
+  fig.path = 'images/',
+  fig.align = 'left'
+)
+
+
+
+knitr::opts_chunk$set(
+  echo = FALSE,
+  message = FALSE,
+  warning = FALSE,
+  error = FALSE,
+  autodep = TRUE
+  )
+
+
+```
+
+
+## Abab

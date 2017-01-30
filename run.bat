@@ -1,0 +1,1 @@
+R CMD BATCH src/prezentacja.Rmd
